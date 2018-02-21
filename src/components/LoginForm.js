@@ -14,6 +14,22 @@ class LoginForm extends Component {
   };
 
   // helper methods
+  onLoginFailure () {
+    this.setState({
+      error: 'Invalid email and/or password.',
+      loading: false
+    });
+  }
+
+  onLoginSuccess () {
+    this.setState({
+      emailInput: '',
+      passwordInput: '',
+      error: '',
+      loading: false
+    });
+  }
+
   renderButton () {
     if (this.state.loading) return <Spinner size="small" />
     return (
@@ -29,11 +45,11 @@ class LoginForm extends Component {
     this.setState({ error: '', loading: true });
 
     firebase.auth().signInWithEmailAndPassword(emailInput, passwordInput)
+            .then(this.onLoginSuccess.bind(this))
             .catch((err) => {
               firebase.auth().createUserWithEmailAndPassword(emailInput, passwordInput)
-                      .catch((err) => {
-                        this.setState({ error: 'Invalid email and/or password.' });
-                      });
+                      .then(this.onLoginSuccess.bind(this))
+                      .catch(this.onLoginFailure.bind(this));
             })
   };
 
