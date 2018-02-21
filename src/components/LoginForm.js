@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import { Text } from 'react-native';
+import firebase from 'firebase';
 
 import { Button, Card, CardSection, TextField } from './common';
 
@@ -6,14 +8,34 @@ class LoginForm extends Component {
 
   state = {
     emailInput: '',
-    passwordInput: ''
+    passwordInput: '',
+    error: ''
+  };
+
+  // helper methods
+
+  handleLogin () {
+    const { emailInput, passwordInput } = this.state;
+
+    this.setState({ error: '' });
+
+    firebase.auth().signInWithEmailAndPassword(emailInput, passwordInput)
+            .catch((err) => {
+              firebase.auth().createUserWithEmailAndPassword(emailInput, passwordInput)
+                      .catch((err) => {
+                        this.setState({ error: 'Invalid email and/or password.' });
+                      });
+            })
   };
 
   render () {
+    const { errorTextStyles } = styles;
+
     return (
       <Card>
         <CardSection>
           <TextField
+            autoCapProp="none"
             label="Email"
             placeholderText="example@email.com"
             value={this.state.emailInput}
@@ -22,8 +44,9 @@ class LoginForm extends Component {
         </CardSection>
 
         <CardSection>
-          {/* secureTextEntryProp is true by simply listing it */}
+          {/* secureTextEntryProp is true by simply listing it as a prop */}
           <TextField
+            autoCapProp="none"
             secureTextEntryProp
             label="Password"
             placeholderText="password"
@@ -32,8 +55,12 @@ class LoginForm extends Component {
           />
         </CardSection>
 
+        <Text style={errorTextStyles}>
+          {this.state.error}
+        </Text>
+
         <CardSection>
-          <Button>
+          <Button onPressProp={this.handleLogin.bind(this)}>
             Login
           </Button>
         </CardSection>
@@ -42,5 +69,13 @@ class LoginForm extends Component {
   }
 
 }
+
+const styles = {
+  errorTextStyles: {
+    fontSize: 20,
+    alignSelf: 'center',
+    color: '#C21807'
+  }
+};
 
 export default LoginForm;
